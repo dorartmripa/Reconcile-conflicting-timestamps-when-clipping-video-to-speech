@@ -1,0 +1,2 @@
+# Optional local Whisper backend (not required for the default demo).
+faster-whisper>=1.0.3

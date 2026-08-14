@@ -1,0 +1,16 @@
+{
+  "source": "whisper_demo_fixture",
+  "description": "Demo speech-to-text timestamps in the same shape as faster-whisper word timings. Used so the project can be demonstrated without downloading a model. Confidence is a per-word probability in [0, 1].",
+  "words": [
+    {"word": "Welcome", "start": 0.50, "end": 0.88, "confidence": 0.96},
+    {"word": "to", "start": 0.95, "end": 1.12, "confidence": 0.95},
+    {"word": "the", "start": 1.20, "end": 1.38, "confidence": 0.94},
+    {"word": "timestamp", "start": 1.55, "end": 2.22, "confidence": 0.96},
+    {"word": "demo", "start": 2.45, "end": 2.90, "confidence": 0.93},
+    {"word": "this", "start": 3.40, "end": 3.68, "confidence": 0.91},
+    {"word": "system", "start": 3.85, "end": 4.28, "confidence": 0.30},
+    {"word": "detects", "start": 4.70, "end": 5.18, "confidence": 0.92},
+    {"word": "conflicts", "start": 5.40, "end": 6.05, "confidence": 0.94},
+    {"word": "reliably", "start": 6.30, "end": 7.05, "confidence": 0.95}
+  ]
+}

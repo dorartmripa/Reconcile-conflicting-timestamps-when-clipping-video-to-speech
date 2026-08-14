@@ -1,0 +1,16 @@
+{
+  "source": "stale_editor_markers",
+  "description": "Approximate/stale per-word timestamps, as if copied from an older editor timeline after the audio was shifted. Real video files almost never store word-level metadata, so this sidecar stands in for that ingest source. The numbers are real inputs to the reconciler; they are not fake decisions.",
+  "words": [
+    {"word": "Welcome", "start": 0.52, "end": 0.90},
+    {"word": "to", "start": 0.97, "end": 1.14},
+    {"word": "the", "start": 1.22, "end": 1.40},
+    {"word": "timestamp", "start": 2.30, "end": 2.95},
+    {"word": "demo", "start": 2.48, "end": 2.93},
+    {"word": "this", "start": 3.42, "end": 3.70},
+    {"word": "system", "start": 4.55, "end": 5.00},
+    {"word": "detects", "start": 4.72, "end": 5.20},
+    {"word": "conflicts", "start": 6.25, "end": 6.90},
+    {"word": "reliably", "start": 7.15, "end": 7.90}
+  ]
+}
