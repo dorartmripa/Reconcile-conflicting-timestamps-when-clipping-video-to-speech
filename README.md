@@ -22,46 +22,32 @@ Open **http://127.0.0.1:8000**
 
 That single address serves both the UI and the API.
 
-### Demo in the browser
+## Try it with your own video
 
-1. Upload `sample/input.mp4`
-2. Click **Load sample transcript**
-3. Click **Analyze & Reconcile**
+1. Upload **your own** video (MP4/MOV with clear speech works best).
+2. Paste or upload a transcript of the spoken words **in order**.
+3. Optionally upload a metadata JSON sidecar of per-word times. If you skip this, the app uses chapter markers when present, otherwise naive even-spacing ingest markers (independent of STT).
+4. Pick a Whisper model if you want (`tiny.en` is fastest; `base.en` / `small.en` are more accurate).
+5. Click **Analyze & Reconcile**.
 
-You should see ~4 conflicts, mixed STT/metadata decisions, a playable clip, and a download button.
+The first run on your own video downloads the Whisper model and can take a minute.
 
-**How to tell it worked:** the report appears, conflicts are listed, and the clip duration is shorter than the original (~10s → ~7s). The sample video is mostly a solid screen, so the picture can look similar even when the trim worked.
+### How to tell it worked
 
-Interviewers cannot open *your* localhost. They clone this repo and run the same commands on their machine. To share a temporary public URL while your laptop is running:
+- Processing steps complete with **no red error**
+- A **report** appears: words aligned, conflicts detected/resolved, trusted source
+- The **conflict table** lists decisions and reasons (if any gaps &gt; 0.5s)
+- The **output clip plays** and **Download** saves an MP4
+- Clip window / duration usually differs from the full upload (trim to the reconciled speech span)
 
-```bash
-npx cloudflared tunnel --url http://127.0.0.1:8000
-```
+If the picture looks similar to your upload, that can still be correct: this tool trims to a speech window, it does not restyle the video.
 
-## Dev UI (optional, two processes)
+### Tips for your own footage
 
-```bash
-# terminal 1
-uvicorn backend.app:app --reload --port 8000 --host 127.0.0.1
-
-# terminal 2
-cd frontend && npm install && npm run dev
-```
-
-Open **http://127.0.0.1:5173**
-
-Rebuild the committed UI after frontend changes:
-
-```bash
-cd frontend && npm run build
-```
-
-## CLI and tests
-
-```bash
-python3 -m src.main --video sample/input.mp4 --transcript sample/transcript.txt
-python3 -m pytest -q
-```
+- Keep clips short (about 10–30 seconds) for a smooth first try
+- Match the transcript to what is actually said (fillers and wrong words hurt alignment)
+- Prefer clear English speech; noisy audio is harder for `tiny.en`
+- Upload metadata JSON when you have editor/ingest times so both sources are realistic
 
 ## Architecture
 
@@ -84,26 +70,25 @@ Browser (http://127.0.0.1:8000)
 | `frontend/dist/` | Built UI served by FastAPI |
 | `backend/` | FastAPI + reconciliation engine |
 | `src/` | Thin re-exports for `python -m src.main` |
-| `sample/` | Demo video, transcript, timestamp fixtures |
+| `sample/` | Optional fixtures for automated tests |
 | `tests/` | pytest for engine + API |
 | `output/jobs/` | Per-job audio, clip, and result JSON |
 
 ## Timestamp sources
 
-**STT**
+**STT (speech-to-text)**
 
-- Bundled sample video + matching transcript → Whisper-shaped fixture (`sample/stt_timestamps.json`) so the demo does not need a model download
-- Any other video → local **faster-whisper** (`tiny.en` by default; UI can select `base.en` / `small.en`)
-- Demo fixtures are gated on **video fingerprint + transcript**, not transcript text alone
+- Your own videos use local **faster-whisper** (`tiny.en` by default; UI can select `base.en` / `small.en`)
+- Word times include confidence (model probability)
+- Transcript tokens are sequence-aligned to ASR output; unmatched words are interpolated and labeled
 
 **Metadata**
 
-1. Uploaded sidecar JSON (if provided)
-2. Bundled sample sidecar (only for the bundled sample video)
-3. Chapter markers via `ffprobe` (rare on normal MP4s)
-4. Otherwise **naive even-spacing ingest markers** across media duration (independent of STT)
+1. Uploaded sidecar JSON (recommended when you have it)
+2. Chapter markers via `ffprobe` (rare on normal MP4s)
+3. Otherwise **naive even-spacing ingest markers** across media duration (independent of STT)
 
-The metadata source can be stubbed; the scoring engine is not.
+The metadata source may be approximate; the scoring engine is real.
 
 ## Reconciliation
 
@@ -114,9 +99,9 @@ A conflict is when start or end times differ by **more than 0.5s** (also interva
 - Chronological order
 - Linear drift (`offset + slope * t`)
 
-Near-ties blend. If both sources break order, the word is marked **untrusted** and skipped for clip bounds. Weights are documented and checked against `sample/labeled_conflicts.json`.
+Near-ties blend. If both sources break order, the word is marked **untrusted** and skipped for clip bounds. Score weights are documented and checked against a small labeled set in `sample/labeled_conflicts.json`.
 
-Sample decisions:
+Example of mixed decisions (from the test fixtures):
 
 | Word | Diff | Conf | Decision |
 |---|---|---|---|
@@ -125,16 +110,46 @@ Sample decisions:
 | conflicts | 0.85s | 0.94 | STT |
 | reliably | 0.85s | 0.95 | STT |
 
-The last decision changes the clip end.
+High-confidence STT tends to win; low-confidence STT can lose to consistent metadata. The last trusted word helps set the clip end.
+
+## CLI and tests
+
+```bash
+# Your video
+python3 -m src.main --video /path/to/video.mp4 --transcript /path/to/transcript.txt
+
+# Optional metadata sidecar
+python3 -m src.main --video /path/to/video.mp4 --transcript /path/to/transcript.txt --metadata /path/to/metadata_timestamps.json
+
+python3 -m pytest -q
+```
+
+## Dev UI (optional, two processes)
+
+```bash
+# terminal 1
+uvicorn backend.app:app --reload --port 8000 --host 127.0.0.1
+
+# terminal 2
+cd frontend && npm install && npm run dev
+```
+
+Open **http://127.0.0.1:5173**
+
+Rebuild the committed UI after frontend changes:
+
+```bash
+cd frontend && npm run build
+```
 
 ## Known limitations
 
-- Sample STT is a fixture unless the video is not the bundled sample
+- First Whisper run downloads the model and is slower than later runs
 - Typical MP4s have no per-word metadata; sidecar / naive ingest stands in
 - Score weights are hand-tuned (validated on a small labeled set)
 - Jobs are queued in-process; Whisper runs under a lock
 - One clip window (first trusted word → last), not a per-word montage
-- First live Whisper run may download the model
+- Alignment quality depends on transcript accuracy and model size
 
 ## What I would improve with more time
 
