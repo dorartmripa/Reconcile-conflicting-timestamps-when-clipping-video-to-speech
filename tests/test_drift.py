@@ -32,6 +32,19 @@ def test_systematic_drift_is_detected_and_logged():
     assert all(conflict.decision == "STT" for conflict in result.conflicts)
 
 
+def test_linear_stretch_sets_nonzero_slope():
+    tokens = ["w1", "w2", "w3", "w4", "w5"]
+    metadata, stt = paired(
+        tokens,
+        [1.0, 2.0, 3.0, 4.0, 5.0],
+        [1.1, 2.2, 3.3, 4.4, 5.5],
+        [0.95, 0.95, 0.95, 0.95, 0.95],
+    )
+    result = reconcile(align_words(tokens, metadata, stt))
+    assert result.drift_detected is True
+    assert result.estimated_slope > 0.05
+
+
 def test_inconsistent_gaps_are_not_called_drift():
     tokens = ["w1", "w2", "w3", "w4"]
     metadata, stt = paired(

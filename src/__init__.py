@@ -1,3 +1,5 @@
 """Timestamp Reconciliation Agent."""
 
-__version__ = "1.0.0"
+from backend import __version__ as __version__
+
+__all__ = ["__version__"]

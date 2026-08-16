@@ -43,7 +43,7 @@ def test_every_conflict_has_explainable_fields(sample_result):
     for conflict in sample_result.conflicts:
         assert conflict.word
         assert conflict.difference > 0.5
-        assert conflict.decision in {"STT", "metadata", "ordering_repair"}
+        assert conflict.decision in {"STT", "metadata", "blend", "untrusted"}
         assert conflict.reason
         assert "stt_score" in conflict.factors
         assert "metadata_score" in conflict.factors

@@ -12,6 +12,9 @@ env/
 output/*.mp4
 output/*.html
 output/*.json
+output/jobs/
+node_modules/
+frontend/.vite/
 *.pt
 *.bin
 models/

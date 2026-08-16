@@ -1,0 +1,9 @@
+{
+  "description": "Hand-labeled conflict winners used to compare the scorer against always-STT.",
+  "cases": [
+    {"word": "timestamp", "expected": "STT"},
+    {"word": "system", "expected": "metadata"},
+    {"word": "conflicts", "expected": "STT"},
+    {"word": "reliably", "expected": "STT"}
+  ]
+}
